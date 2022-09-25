@@ -3,12 +3,12 @@
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
 #include <signal_path/sink.h>
-#include <dsp/audio.h>
-#include <dsp/processing.h>
+#include <dsp/buffer/packer.h>
+#include <dsp/convert/stereo_to_mono.h>
 #include <spdlog/spdlog.h>
 #include <RtAudio.h>
 #include <config.h>
-#include <options.h>
+#include <core.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -132,7 +132,7 @@ public:
     }
 
     void menuHandler() {
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
+        float menuWidth = ImGui::GetContentRegionAvail().x;
 
         ImGui::SetNextItemWidth(menuWidth);
         if (ImGui::Combo(("##_audio_sink_dev_" + _streamName).c_str(), &devId, txtDevList.c_str())) {
@@ -211,9 +211,9 @@ private:
     }
 
     SinkManager::Stream* _stream;
-    dsp::StereoToMono s2m;
-    dsp::Packer<float> monoPacker;
-    dsp::Packer<dsp::stereo_t> stereoPacker;
+    dsp::convert::StereoToMono s2m;
+    dsp::buffer::Packer<float> monoPacker;
+    dsp::buffer::Packer<dsp::stereo_t> stereoPacker;
 
     std::string _streamName;
 
@@ -276,7 +276,7 @@ private:
 
 MOD_EXPORT void _INIT_() {
     json def = json({});
-    config.setPath(options::opts.root + "/audio_sink_config.json");
+    config.setPath(core::args["root"].s() + "/audio_sink_config.json");
     config.load(def);
     config.enableAutoSave();
 }

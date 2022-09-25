@@ -19,10 +19,10 @@ bundle_create_struct $BUNDLE
 cp -R root/res/* $BUNDLE/Contents/Resources/
 
 # Create the icon file
-bundle_create_icns root/res/icons/sdrpp.png $BUNDLE/Contents/Resources/sdrpp
+bundle_create_icns root/res/icons/sdrpp.macos.png $BUNDLE/Contents/Resources/sdrpp
 
 # Create the property list
-bundle_create_plist sdrpp SDR++ org.sdrpp.sdrpp 1.0.5 sdrp sdrpp sdrpp $BUNDLE/Contents/Info.plist
+bundle_create_plist sdrpp SDR++ org.sdrpp.sdrpp 1.1.0 sdrp sdrpp sdrpp $BUNDLE/Contents/Info.plist
 
 # ========================= Install binaries =========================
 
@@ -56,10 +56,12 @@ bundle_install_binary $BUNDLE $BUNDLE/Contents/Plugins $BUILD_DIR/decoder_module
 bundle_install_binary $BUNDLE $BUNDLE/Contents/Plugins $BUILD_DIR/decoder_modules/meteor_demodulator/meteor_demodulator.dylib
 bundle_install_binary $BUNDLE $BUNDLE/Contents/Plugins $BUILD_DIR/decoder_modules/radio/radio.dylib
 
+# Misc modules
 bundle_install_binary $BUNDLE $BUNDLE/Contents/Plugins $BUILD_DIR/misc_modules/discord_integration/discord_integration.dylib
 bundle_install_binary $BUNDLE $BUNDLE/Contents/Plugins $BUILD_DIR/misc_modules/frequency_manager/frequency_manager.dylib
 bundle_install_binary $BUNDLE $BUNDLE/Contents/Plugins $BUILD_DIR/misc_modules/recorder/recorder.dylib
 bundle_install_binary $BUNDLE $BUNDLE/Contents/Plugins $BUILD_DIR/misc_modules/rigctl_server/rigctl_server.dylib
+bundle_install_binary $BUNDLE $BUNDLE/Contents/Plugins $BUILD_DIR/misc_modules/scanner/scanner.dylib
 
 # ========================= Finalize =========================
 

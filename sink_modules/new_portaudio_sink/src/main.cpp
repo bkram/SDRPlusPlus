@@ -4,12 +4,12 @@
 #include <signal_path/signal_path.h>
 #include <signal_path/sink.h>
 #include <portaudio.h>
-#include <dsp/audio.h>
-#include <dsp/processing.h>
+#include <dsp/buffer/packer.h>
+#include <dsp/convert/stereo_to_mono.h>
 #include <spdlog/spdlog.h>
 #include <config.h>
 #include <algorithm>
-#include <options.h>
+#include <core.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -137,7 +137,7 @@ public:
     }
 
     void menuHandler() {
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
+        float menuWidth = ImGui::GetContentRegionAvail().x;
 
         // Select device
         ImGui::SetNextItemWidth(menuWidth);
@@ -374,8 +374,8 @@ private:
     std::string selectedDevName;
 
     SinkManager::Stream* _stream;
-    dsp::Packer<dsp::stereo_t> packer;
-    dsp::StereoToMono s2m;
+    dsp::buffer::Packer<dsp::stereo_t> packer;
+    dsp::convert::StereoToMono s2m;
 
     PaStream* devStream;
 
@@ -424,7 +424,7 @@ private:
 };
 
 MOD_EXPORT void _INIT_() {
-    config.setPath(options::opts.root + "/new_audio_sink_config.json");
+    config.setPath(core::args["root"].s() + "/new_audio_sink_config.json");
     config.load(json::object());
     config.enableAutoSave();
 }

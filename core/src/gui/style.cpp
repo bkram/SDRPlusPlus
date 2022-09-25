@@ -2,7 +2,6 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <config.h>
-#include <options.h>
 #include <spdlog/spdlog.h>
 #include <filesystem>
 
@@ -10,16 +9,45 @@ namespace style {
     ImFont* baseFont;
     ImFont* bigFont;
     ImFont* hugeFont;
+    ImVector<ImWchar> baseRanges;
+    ImVector<ImWchar> bigRanges;
+    ImVector<ImWchar> hugeRanges;
+
+#ifndef __ANDROID__
+    float uiScale = 1.0f;
+#else
+    float uiScale = 3.0f;
+#endif
 
     bool loadFonts(std::string resDir) {
+        ImFontAtlas* fonts = ImGui::GetIO().Fonts;
         if (!std::filesystem::is_directory(resDir)) {
             spdlog::error("Invalid resource directory: {0}", resDir);
             return false;
         }
 
-        baseFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(resDir + "/fonts/Roboto-Medium.ttf")).c_str(), 16.0f);
-        bigFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(resDir + "/fonts/Roboto-Medium.ttf")).c_str(), 45.0f);
-        hugeFont = ImGui::GetIO().Fonts->AddFontFromFileTTF(((std::string)(resDir + "/fonts/Roboto-Medium.ttf")).c_str(), 128.0f);
+        // Create base font range
+        ImFontGlyphRangesBuilder baseBuilder;
+        baseBuilder.AddRanges(fonts->GetGlyphRangesDefault());
+        baseBuilder.AddRanges(fonts->GetGlyphRangesCyrillic());
+        baseBuilder.BuildRanges(&baseRanges);
+
+        // Create big font range
+        ImFontGlyphRangesBuilder bigBuilder;
+        const ImWchar bigRange[] = { '.', '9', 0 };
+        bigBuilder.AddRanges(bigRange);
+        bigBuilder.BuildRanges(&bigRanges);
+
+        // Create huge font range
+        ImFontGlyphRangesBuilder hugeBuilder;
+        const ImWchar hugeRange[] = { 'S', 'S', 'D', 'D', 'R', 'R', '+', '+', ' ', ' ', 0 };
+        hugeBuilder.AddRanges(hugeRange);
+        hugeBuilder.BuildRanges(&hugeRanges);
+        
+        // Add bigger fonts for frequency select and title
+        baseFont = fonts->AddFontFromFileTTF(((std::string)(resDir + "/fonts/Roboto-Medium.ttf")).c_str(), 16.0f * uiScale, NULL, baseRanges.Data);
+        bigFont = fonts->AddFontFromFileTTF(((std::string)(resDir + "/fonts/Roboto-Medium.ttf")).c_str(), 45.0f * uiScale, NULL, bigRanges.Data);
+        hugeFont = fonts->AddFontFromFileTTF(((std::string)(resDir + "/fonts/Roboto-Medium.ttf")).c_str(), 128.0f * uiScale, NULL, hugeRanges.Data);
 
         return true;
     }
@@ -55,6 +83,6 @@ namespace ImGui {
     }
 
     void FillWidth() {
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvailWidth());
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
     }
 }

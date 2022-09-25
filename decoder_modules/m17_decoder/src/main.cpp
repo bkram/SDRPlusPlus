@@ -5,16 +5,11 @@
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
 #include <module.h>
-#include <options.h>
 #include <filesystem>
-#include <dsp/pll.h>
 #include <dsp/stream.h>
-#include <dsp/demodulator.h>
-#include <dsp/window.h>
-#include <dsp/resampling.h>
-#include <dsp/processing.h>
-#include <dsp/routing.h>
-#include <dsp/sink.h>
+#include <dsp/buffer/reshaper.h>
+#include <dsp/multirate/rational_resampler.h>
+#include <dsp/sink/handler_sink.h>
 #include <gui/widgets/folder_select.h>
 #include <gui/widgets/symbol_diagram.h>
 #include <m17dsp.h>
@@ -62,12 +57,7 @@ public:
 
         // Initialize DSP here
         decoder.init(vfo->output, INPUT_SAMPLE_RATE, lsfHandler, this);
-
-        resampWin.init(4000, 4000, audioSampRate);
-        resamp.init(decoder.out, &resampWin, 8000, audioSampRate);
-        resampWin.setSampleRate(8000 * resamp.getInterpolation());
-        resamp.updateWindow(&resampWin);
-
+        resamp.init(decoder.out, 8000, audioSampRate);
         reshape.init(decoder.diagOut, 480, 0);
         diagHandler.init(&reshape.out, _diagHandler, this);
 
@@ -141,7 +131,7 @@ private:
     static void menuHandler(void* ctx) {
         M17DecoderModule* _this = (M17DecoderModule*)ctx;
 
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
+        float menuWidth = ImGui::GetContentRegionAvail().x;
 
         if (!_this->enabled) { style::beginDisabled(); }
 
@@ -251,11 +241,8 @@ private:
         M17DecoderModule* _this = (M17DecoderModule*)ctx;
         // TODO: If too slow, change all demods here and not when setting
         _this->audioSampRate = sampleRate;
-        _this->resampWin.setCutoff(std::min<float>(sampleRate / 2, 4000));
         _this->resamp.tempStop();
-        _this->resamp.setOutSampleRate(sampleRate);
-        _this->resampWin.setSampleRate(8000 * _this->resamp.getInterpolation());
-        _this->resamp.updateWindow(&_this->resampWin);
+        _this->resamp.setOutSamplerate(sampleRate);
         _this->resamp.tempStart();
     }
 
@@ -274,11 +261,9 @@ private:
 
     dsp::M17Decoder decoder;
 
-    dsp::Reshaper<float> reshape;
-    dsp::HandlerSink<float> diagHandler;
-
-    dsp::filter_window::BlackmanWindow resampWin;
-    dsp::PolyphaseResampler<dsp::stereo_t> resamp;
+    dsp::buffer::Reshaper<float> reshape;
+    dsp::sink::Handler<float> diagHandler;
+    dsp::multirate::RationalResampler<dsp::stereo_t> resamp;
 
     ImGui::SymbolDiagram diag;
 
@@ -296,7 +281,7 @@ private:
 MOD_EXPORT void _INIT_() {
     // Create default recording directory
     json def = json({});
-    config.setPath(options::opts.root + "/m17_decoder_config.json");
+    config.setPath(core::args["root"].s() + "/m17_decoder_config.json");
     config.load(def);
     config.enableAutoSave();
 }

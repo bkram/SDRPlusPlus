@@ -24,7 +24,7 @@ void SinkManager::Stream::init(dsp::stream<dsp::stereo_t>* in, EventHandler<floa
     _sampleRate = sampleRate;
     splitter.init(_in);
     splitter.bindStream(&volumeInput);
-    volumeAjust.init(&volumeInput, 1.0f);
+    volumeAjust.init(&volumeInput, 1.0f, false);
     sinkOut = &volumeAjust.out;
 }
 
@@ -239,7 +239,7 @@ void SinkManager::setStreamSink(std::string name, std::string providerName) {
     }
 }
 
-void SinkManager::showVolumeSlider(std::string name, std::string prefix, float width, float btnHeight, int btwBorder, bool sameLine) {
+void SinkManager::showVolumeSlider(std::string name, std::string prefix, float width, float btnHeight, int btnBorder, bool sameLine) {
     // TODO: Replace map with some hashmap for it to be faster
     float height = ImGui::GetTextLineHeightWithSpacing() + 2;
     float sliderHeight = height;
@@ -248,16 +248,17 @@ void SinkManager::showVolumeSlider(std::string name, std::string prefix, float w
     }
 
     float ypos = ImGui::GetCursorPosY();
+    float sliderOffset = 8.0f * style::uiScale;
 
     if (streams.find(name) == streams.end() || name == "") {
         float dummy = 0.0f;
         style::beginDisabled();
         ImGui::PushID(ImGui::GetID(("sdrpp_unmute_btn_" + name).c_str()));
-        ImGui::ImageButton(icons::MUTED, ImVec2(height, height), ImVec2(0, 0), ImVec2(1, 1), btwBorder);
+        ImGui::ImageButton(icons::MUTED, ImVec2(height, height), ImVec2(0, 0), ImVec2(1, 1), btnBorder, ImVec4(0, 0, 0, 0), ImGui::GetStyleColorVec4(ImGuiCol_Text));
         ImGui::PopID();
         ImGui::SameLine();
-        ImGui::SetNextItemWidth(width - height - 8);
-        ImGui::SetCursorPosY(ypos + ((height - sliderHeight) / 2.0f) + btwBorder);
+        ImGui::SetNextItemWidth(width - height - sliderOffset);
+        ImGui::SetCursorPosY(ypos + ((height - sliderHeight) / 2.0f) + btnBorder);
         ImGui::SliderFloat((prefix + name).c_str(), &dummy, 0.0f, 1.0f, "");
         style::endDisabled();
         if (sameLine) { ImGui::SetCursorPosY(ypos); }
@@ -268,7 +269,7 @@ void SinkManager::showVolumeSlider(std::string name, std::string prefix, float w
 
     if (stream->volumeAjust.getMuted()) {
         ImGui::PushID(ImGui::GetID(("sdrpp_unmute_btn_" + name).c_str()));
-        if (ImGui::ImageButton(icons::MUTED, ImVec2(height, height), ImVec2(0, 0), ImVec2(1, 1), btwBorder)) {
+        if (ImGui::ImageButton(icons::MUTED, ImVec2(height, height), ImVec2(0, 0), ImVec2(1, 1), btnBorder, ImVec4(0, 0, 0, 0), ImGui::GetStyleColorVec4(ImGuiCol_Text))) {
             stream->volumeAjust.setMuted(false);
             core::configManager.acquire();
             saveStreamConfig(name);
@@ -278,7 +279,7 @@ void SinkManager::showVolumeSlider(std::string name, std::string prefix, float w
     }
     else {
         ImGui::PushID(ImGui::GetID(("sdrpp_mute_btn_" + name).c_str()));
-        if (ImGui::ImageButton(icons::UNMUTED, ImVec2(height, height), ImVec2(0, 0), ImVec2(1, 1), btwBorder)) {
+        if (ImGui::ImageButton(icons::UNMUTED, ImVec2(height, height), ImVec2(0, 0), ImVec2(1, 1), btnBorder, ImVec4(0, 0, 0, 0), ImGui::GetStyleColorVec4(ImGuiCol_Text))) {
             stream->volumeAjust.setMuted(true);
             core::configManager.acquire();
             saveStreamConfig(name);
@@ -289,8 +290,8 @@ void SinkManager::showVolumeSlider(std::string name, std::string prefix, float w
 
     ImGui::SameLine();
 
-    ImGui::SetNextItemWidth(width - height - 8);
-    ImGui::SetCursorPosY(ypos + ((height - sliderHeight) / 2.0f) + btwBorder);
+    ImGui::SetNextItemWidth(width - height - sliderOffset);
+    ImGui::SetCursorPosY(ypos + ((height - sliderHeight) / 2.0f) + btnBorder);
     if (ImGui::SliderFloat((prefix + name).c_str(), &stream->guiVolume, 0.0f, 1.0f, "")) {
         stream->setVolume(stream->guiVolume);
         core::configManager.acquire();
@@ -341,7 +342,7 @@ void SinkManager::loadSinksFromConfig() {
 }
 
 void SinkManager::showMenu() {
-    float menuWidth = ImGui::GetContentRegionAvailWidth();
+    float menuWidth = ImGui::GetContentRegionAvail().x;
     int count = 0;
     int maxCount = streams.size();
 

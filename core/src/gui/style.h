@@ -1,11 +1,13 @@
 #pragma once
 #include <imgui.h>
 #include <string>
+#include <module.h>
 
 namespace style {
-    extern ImFont* baseFont;
-    extern ImFont* bigFont;
-    extern ImFont* hugeFont;
+    SDRPP_EXPORT ImFont* baseFont;
+    SDRPP_EXPORT ImFont* bigFont;
+    SDRPP_EXPORT ImFont* hugeFont;
+    SDRPP_EXPORT float uiScale;
 
     bool setDefaultStyle(std::string resDir);
     bool loadFonts(std::string resDir);

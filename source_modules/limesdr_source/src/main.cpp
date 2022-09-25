@@ -5,7 +5,6 @@
 #include <core.h>
 #include <gui/style.h>
 #include <config.h>
-#include <options.h>
 #include <gui/smgui.h>
 #include <lime/LimeSuite.h>
 
@@ -324,12 +323,20 @@ private:
         // Open device
         _this->openDev = NULL;
         LMS_Open(&_this->openDev, _this->devList[_this->devId], NULL);
-        LMS_Init(_this->openDev);
+        int err = LMS_Init(_this->openDev);
+
+        // On open fail, retry (work around for LimeSuite bug)
+        if (err) {
+            LMS_Close(_this->openDev);
+            LMS_Open(&_this->openDev, _this->devList[_this->devId], NULL);
+            LMS_Init(_this->openDev);
+        }
 
         spdlog::warn("Channel count: {0}", LMS_GetNumChannels(_this->openDev, false));
 
         // Set options
         LMS_EnableChannel(_this->openDev, false, _this->chanId, true);
+        LMS_SetAntenna(_this->openDev, false, _this->chanId, _this->antennaId);
         LMS_SetSampleRate(_this->openDev, _this->sampleRate, 0);
         LMS_SetLOFrequency(_this->openDev, false, _this->chanId, _this->freq);
         LMS_SetGaindB(_this->openDev, false, _this->chanId, _this->gain);
@@ -365,6 +372,7 @@ private:
 
         LMS_StopStream(&_this->devStream);
         LMS_DestroyStream(_this->openDev, &_this->devStream);
+        LMS_EnableChannel(_this->openDev, false, _this->chanId, false);
 
         LMS_Close(_this->openDev);
 
@@ -522,7 +530,7 @@ MOD_EXPORT void _INIT_() {
     json def = json({});
     def["devices"] = json({});
     def["device"] = "";
-    config.setPath(options::opts.root + "/limesdr_config.json");
+    config.setPath(core::args["root"].s() + "/limesdr_config.json");
     config.load(def);
     config.enableAutoSave();
 }

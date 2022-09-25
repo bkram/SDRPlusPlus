@@ -3,19 +3,19 @@
 #include <spdlog/spdlog.h>
 #include <version.h>
 #include <config.h>
-#include <options.h>
 #include <filesystem>
 #include <dsp/types.h>
 #include <signal_path/signal_path.h>
 #include <gui/smgui.h>
 #include <utils/optionlist.h>
-#include <dsp/compression.h>
+#include "dsp/compression/sample_stream_compressor.h"
+#include "dsp/sink/handler_sink.h"
 #include <zstd.h>
 
 namespace server {
     dsp::stream<dsp::complex_t> dummyInput;
-    dsp::DynamicRangeCompressor comp;
-    dsp::HandlerSink<uint8_t> hnd;
+    dsp::compression::SampleStreamCompressor comp;
+    dsp::sink::Handler<uint8_t> hnd;
     net::Conn client;
     uint8_t* rbuf = NULL;
     uint8_t* sbuf = NULL;
@@ -50,7 +50,7 @@ namespace server {
         spdlog::info("=====| SERVER MODE |=====");
 
         // Init DSP
-        comp.init(&dummyInput, dsp::PCM_TYPE_I8);
+        comp.init(&dummyInput, dsp::compression::PCM_TYPE_I8);
         hnd.init(&comp.out, _testServerHandler, NULL);
         rbuf = new uint8_t[SERVER_MAX_PACKET_SIZE];
         sbuf = new uint8_t[SERVER_MAX_PACKET_SIZE];
@@ -75,6 +75,7 @@ namespace server {
         // Initialize compressor
         cctx = ZSTD_createCCtx();
 
+        // Load config
         core::configManager.acquire();
         std::string modulesDir = core::configManager.conf["modulesDirectory"];
         std::vector<std::string> modules = core::configManager.conf["modules"];
@@ -83,8 +84,10 @@ namespace server {
         core::configManager.release();
         modulesDir = std::filesystem::absolute(modulesDir).string();
 
-        spdlog::info("Loading modules");
+        // Initialize SmGui in server mode
+        SmGui::init(true);
 
+        spdlog::info("Loading modules");
         // Load modules and check type to only load sources ( TODO: Have a proper type parameter int the info )
         // TODO LATER: Add whitelist/blacklist stuff
         if (std::filesystem::is_directory(modulesDir)) {
@@ -146,10 +149,12 @@ namespace server {
         sigpath::sourceManager.selectSource(sourceList[sourceId]);
 
         // TODO: Use command line option
-        listener = net::listen(options::opts.serverHost, options::opts.serverPort);
+        std::string host = (std::string)core::args["addr"];
+        int port = (int)core::args["port"];
+        listener = net::listen(host, port);
         listener->acceptAsync(_clientHandler, NULL);
 
-        spdlog::info("Ready, listening on {0}:{1}", options::opts.serverHost, options::opts.serverPort);
+        spdlog::info("Ready, listening on {0}:{1}", host, port);
         while(1) { std::this_thread::sleep_for(std::chrono::milliseconds(100)); }
 
         return 0;
@@ -185,7 +190,7 @@ namespace server {
 
         // Perform settings reset
         sigpath::sourceManager.stop();
-        comp.setPCMType(dsp::PCM_TYPE_I16);
+        comp.setPCMType(dsp::compression::PCM_TYPE_I16);
         compression = false;
 
         sendSampleRate(sampleRate);
@@ -287,7 +292,7 @@ namespace server {
             sendCommandAck(COMMAND_SET_FREQUENCY, 0);
         }
         else if (cmd == COMMAND_SET_SAMPLE_TYPE && len == 1) {
-            dsp::PCMType type = (dsp::PCMType)*(uint8_t*)data;
+            dsp::compression::PCMType type = (dsp::compression::PCMType)*(uint8_t*)data;
             comp.setPCMType(type);
         }
         else if (cmd == COMMAND_SET_COMPRESSION && len == 1) {

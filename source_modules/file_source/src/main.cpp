@@ -5,7 +5,6 @@
 #include <signal_path/signal_path.h>
 #include <wavreader.h>
 #include <core.h>
-#include <options.h>
 #include <gui/widgets/file_select.h>
 #include <filesystem>
 #include <regex>
@@ -28,7 +27,7 @@ public:
     FileSourceModule(std::string name) : fileSelect("", { "Wav IQ Files (*.wav)", "*.wav", "All Files", "*" }) {
         this->name = name;
 
-        if (options::opts.serverMode) { return; }
+        if (core::args["server"].b()) { return; }
 
         config.acquire();
         fileSelect.setPath(config.conf["path"], true);
@@ -69,7 +68,7 @@ private:
         FileSourceModule* _this = (FileSourceModule*)ctx;
         core::setInputSampleRate(_this->sampleRate);
         tuner::tune(tuner::TUNER_MODE_IQ_ONLY, "", _this->centerFreq);
-        sigpath::signalPath.setBuffering(false);
+        sigpath::iqFrontEnd.setBuffering(false);
         gui::waterfall.centerFrequencyLocked = true;
         //gui::freqSelect.minFreq = _this->centerFreq - (_this->sampleRate/2);
         //gui::freqSelect.maxFreq = _this->centerFreq + (_this->sampleRate/2);
@@ -79,7 +78,7 @@ private:
 
     static void menuDeselected(void* ctx) {
         FileSourceModule* _this = (FileSourceModule*)ctx;
-        sigpath::signalPath.setBuffering(true);
+        sigpath::iqFrontEnd.setBuffering(true);
         //gui::freqSelect.limitFreq = false;
         gui::waterfall.centerFrequencyLocked = false;
         spdlog::info("FileSourceModule '{0}': Menu Deselect!", _this->name);
@@ -200,7 +199,7 @@ private:
 MOD_EXPORT void _INIT_() {
     json def = json({});
     def["path"] = "";
-    config.setPath(options::opts.root + "/file_source_config.json");
+    config.setPath(core::args["root"].s() + "/file_source_config.json");
     config.load(def);
     config.enableAutoSave();
 }

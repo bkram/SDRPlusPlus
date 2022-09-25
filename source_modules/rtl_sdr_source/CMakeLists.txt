@@ -22,6 +22,11 @@ if (MSVC)
     target_link_directories(rtl_sdr_source PRIVATE "C:/Program Files/PothosSDR/bin/")
 
     target_link_libraries(rtl_sdr_source PRIVATE rtlsdr)
+elseif (ANDROID)
+    target_link_libraries(rtl_sdr_source PUBLIC
+        /sdr-kit/${ANDROID_ABI}/lib/libusb1.0.so
+        /sdr-kit/${ANDROID_ABI}/lib/librtlsdr.so
+    )
 else (MSVC)
     find_package(PkgConfig)
 

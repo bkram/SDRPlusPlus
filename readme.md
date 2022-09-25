@@ -8,7 +8,7 @@ SDR++ is a cross-platform and open source SDR software with the aim of being blo
 * [Patreon](https://patreon.com/ryzerth)
 * [Discord Server](https://discord.gg/aFgWjyD)
 * [Reddit](https://www.reddit.com/r/sdrpp/)
-* IRC: `#sdrpp` ([libera.chat](https://libera.chat))
+* IRC: `#sdrpp` ([libera.chat](https://libera.chat)) __**NO LONGER ACTIVE, JOIN DISCORD INSTEAD**__
 
 ## Features
 
@@ -52,50 +52,7 @@ There are currently no existing packages for other distributions, for these syst
 
 ## MacOS
 
-You might get lucky by using the installer downloadable from [the Releases page](https://github.com/AlexandreRouma/SDRPlusPlus/releases).
-
-### Building it yourself
-
-This guide requires you to have Homebrew installed. Check out https://brew.sh/ on how to do so.
-
-Get yourself a copy of the source code. This can be done by downloading the
-source package from [the Releases
-page](https://github.com/AlexandreRouma/SDRPlusPlus/releases). Extract it to a
-location of your choice. Alternativley you can clone
-https://github.com/AlexandreRouma/SDRPlusPlus.git using git.
-
-```sh
-brew install \
-  airspy \
-  airspyhf \
-  cmake \
-  codec2 \
-  fftw \
-  glfw \
-  hackrf \
-  libbladerf \
-  librtlsdr \
-  portaudio \
-  rtl-sdr \
-  soapyrtlsdr \
-  volk \
-  zstd
-mkdir build
-cd build
-cmake .. \
-  -DOPT_BUILD_AUDIO_SINK=OFF \
-  -DOPT_BUILD_BLADERF_SOURCE=OFF \
-  -DOPT_BUILD_M17_DECODER=ON \
-  -DOPT_BUILD_NEW_PORTAUDIO_SINK=ON \
-  -DOPT_BUILD_PLUTOSDR_SOURCE=OFF \
-  -DOPT_BUILD_PORTAUDIO_SINK=ON \
-  -DOPT_BUILD_SOAPY_SOURCE=OFF
-make -j$(sysctl -n hw.ncpu)
-```
-
-The above was tested on macOS Big Sur (11.5).
-
-Check `jobs.build_macos` in the [build_all.yaml](https://github.com/AlexandreRouma/SDRPlusPlus/blob/master/.github/workflows/build_all.yml) workflow for the exact options used for building the package available in the [releases](https://github.com/AlexandreRouma/SDRPlusPlus/releases/tag/1.0.3)
+Download the app bundle from the latest [nightly build](https://www.sdrpp.org/nightly)
 
 ## BSD
 
@@ -209,7 +166,7 @@ The modules built will be some of the following (Repeat the instructions above f
 ## Select which modules you wish to build
 
 Depending on which module you want to build, you will need to install some additional dependencies.
-Here are listed every module that requires addition dependencies. If a module enabled by default and you do not wish to install a perticular dependency (or can't, eg. the BladeRF module on Debian Buster),
+Here are listed every module that requires addition dependencies. If a module enabled by default and you do not wish to install a particular dependency (or can't, eg. the BladeRF module on Debian Buster),
 you can disable it using the module parameter listed in the table below
 
 * soapy_source: SoapySDR + drivers for each SDRs (see SoapySDR docs)
@@ -306,6 +263,10 @@ To install SDR++, run the following command in your ``build`` folder:
 sudo make install
 ```
 
+# Building on MacOS
+
+No instructions yet, follow the CI script if you know what you're doing or just install the app bundle.
+
 # Module List
 
 Not all modules are built by default. I decided to disable the build of those with large libraries, libraries that can't be installed through the package manager (or pothos) and those that are still in beta.
@@ -321,7 +282,6 @@ Modules in beta are still included in releases for the most part but not enabled
 | file_source      | Working    | -                 | OPT_BUILD_FILE_SOURCE      | ✅              | ✅                     | ✅                         |
 | hackrf_source    | Working    | libhackrf         | OPT_BUILD_HACKRF_SOURCE    | ✅              | ✅                     | ✅                         |
 | limesdr_source   | Working    | liblimesuite      | OPT_BUILD_LIMESDR_SOURCE   | ⛔              | ✅                     | ✅                         |
-| sddc_source      | Unfinished | -                 | OPT_BUILD_SDDC_SOURCE      | ⛔              | ⛔                     | ⛔                         |
 | rtl_sdr_source   | Working    | librtlsdr         | OPT_BUILD_RTL_SDR_SOURCE   | ✅              | ✅                     | ✅                         |
 | rtl_tcp_source   | Working    | -                 | OPT_BUILD_RTL_TCP_SOURCE   | ✅              | ✅                     | ✅                         |
 | sdrplay_source   | Working    | SDRplay API       | OPT_BUILD_SDRPLAY_SOURCE   | ⛔              | ✅                     | ✅                         |
@@ -355,6 +315,7 @@ Modules in beta are still included in releases for the most part but not enabled
 | frequency_manager   | Working    | -            | OPT_BUILD_FREQUENCY_MANAGER | ✅              | ✅               | ✅                         |
 | recorder            | Working    | -            | OPT_BUILD_RECORDER          | ✅              | ✅               | ✅                         |
 | rigctl_server       | Working    | -            | OPT_BUILD_RIGCTL_SERVER     | ✅              | ✅               | ⛔                         |
+| scanner             | Beta       | -            | OPT_BUILD_SCANNER           | ✅              | ✅               | ✅                         |
 
 # Troubleshooting
 
@@ -364,7 +325,7 @@ First, please make sure you're running the latest automated build. If your issue
 
 This is a bug in 1.0.0 that was fixed in 1.0.1
 
-In some cases, if a crash happened while the config was being saved, the config file woul be corrupted and SDR++ would refuse to start because of it.
+In some cases, if a crash happened while the config was being saved, the config file would be corrupted and SDR++ would refuse to start because of it.
 
 This has now been fixed. If a config file is corrupted it'll just reset it to its default state.
 
@@ -411,15 +372,21 @@ I will soon publish a contributing.md listing the code style to use.
 * Eric Johnson
 * Ernest Murphy (NH7L)
 * Flinger Films
+* gringogrigio
+* Joe Cupano
 * Kezza
+* Krys Kamieniecki
 * Lee Donaghy
+* Lee KD1SQ
 * .lozenge. (Hank Hill)
 * ON4MU
 * [Passion-Radio.com](https://passion-radio.com/)
+* Paul Maine
 * [Scanner School](https://scannerschool.com/)
 * [SignalsEverywhere](https://signalseverywhere.com/)
 * Syne Ardwin (WI9SYN)
 * [W4IPA](https://twitter.com/W4IPAstroke5)
+* [Zipper](github.com/reppiZ)
 
 ## Contributors
 
@@ -443,7 +410,9 @@ I will soon publish a contributing.md listing the code style to use.
 * [Syne Ardwin (WI9SYN)](https://esaille.me/)
 * [Szymon Zakrent](https://github.com/zakrent)
 * [Tobias Mädel](https://github.com/Manawyrm)
+* Youssef Touil
 * [Zimm](https://github.com/invader-zimm)
+
 
 ## Libraries used
 

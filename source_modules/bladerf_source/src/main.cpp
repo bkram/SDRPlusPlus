@@ -6,10 +6,8 @@
 #include <core.h>
 #include <gui/style.h>
 #include <config.h>
-#include <options.h>
 #include <gui/widgets/stepped_slider.h>
 #include <libbladeRF.h>
-#include <dsp/processing.h>
 #include <gui/smgui.h>
 #include <algorithm>
 
@@ -610,7 +608,7 @@ MOD_EXPORT void _INIT_() {
     json def = json({});
     def["devices"] = json({});
     def["device"] = "";
-    config.setPath(options::opts.root + "/bladerf_config.json");
+    config.setPath(core::args["root"].s() + "/bladerf_config.json");
     config.load(def);
     config.enableAutoSave();
 }

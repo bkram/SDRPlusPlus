@@ -2,7 +2,7 @@
 #include <signal_path/source.h>
 #include <spdlog/spdlog.h>
 #include <signal_path/signal_path.h>
-#include <options.h>
+#include <core.h>
 
 SourceManager::SourceManager() {
 }
@@ -26,7 +26,7 @@ void SourceManager::unregisterSource(std::string name) {
         if (selectedHandler != NULL) {
             sources[selectedName]->deselectHandler(sources[selectedName]->ctx);
         }
-        sigpath::signalPath.setInput(&nullSource);
+        sigpath::iqFrontEnd.setInput(&nullSource);
         selectedHandler = NULL;
     }
     sources.erase(name);
@@ -50,11 +50,11 @@ void SourceManager::selectSource(std::string name) {
     selectedHandler = sources[name];
     selectedHandler->selectHandler(selectedHandler->ctx);
     selectedName = name;
-    if (options::opts.serverMode) {
+    if (core::args["server"].b()) {
         server::setInput(selectedHandler->stream);
     }
     else {
-        sigpath::signalPath.setInput(selectedHandler->stream);
+        sigpath::iqFrontEnd.setInput(selectedHandler->stream);
     }
     // Set server input here
 }

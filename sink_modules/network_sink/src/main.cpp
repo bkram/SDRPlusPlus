@@ -4,12 +4,13 @@
 #include <gui/gui.h>
 #include <signal_path/signal_path.h>
 #include <signal_path/sink.h>
-#include <dsp/audio.h>
-#include <dsp/processing.h>
+#include <dsp/buffer/packer.h>
+#include <dsp/convert/stereo_to_mono.h>
+#include <dsp/sink/handler_sink.h>
 #include <spdlog/spdlog.h>
 #include <config.h>
-#include <options.h>
 #include <gui/style.h>
+#include <core.h>
 
 #define CONCAT(a, b) ((std::string(a) + b).c_str())
 
@@ -122,7 +123,7 @@ public:
     }
 
     void menuHandler() {
-        float menuWidth = ImGui::GetContentRegionAvailWidth();
+        float menuWidth = ImGui::GetContentRegionAvail().x;
 
         bool listening = (listener && listener->isListening()) || (conn && conn->isOpen());
 
@@ -271,10 +272,10 @@ private:
     }
 
     SinkManager::Stream* _stream;
-    dsp::Packer<dsp::stereo_t> packer;
-    dsp::StereoToMono s2m;
-    dsp::HandlerSink<float> monoSink;
-    dsp::HandlerSink<dsp::stereo_t> stereoSink;
+    dsp::buffer::Packer<dsp::stereo_t> packer;
+    dsp::convert::StereoToMono s2m;
+    dsp::sink::Handler<float> monoSink;
+    dsp::sink::Handler<dsp::stereo_t> stereoSink;
 
     std::string _streamName;
 
@@ -339,7 +340,7 @@ private:
 
 MOD_EXPORT void _INIT_() {
     json def = json({});
-    config.setPath(options::opts.root + "/network_sink_config.json");
+    config.setPath(core::args["root"].s() + "/network_sink_config.json");
     config.load(def);
     config.enableAutoSave();
 }
